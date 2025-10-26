@@ -1,0 +1,422 @@
+[
+  {
+    "id": 1,
+    "name": "Museo Centro Histórico Ron Barceló",
+    "description": "Podrán sumergirse en un ambiente ecléctico antiguo y moderno, con piezas y objetos que despertarán su curiosidad y les envolverán en un ambiente de descubrimiento. Además, tendrán oportunidad de adquirir nuestros productos y gama de artículos promocionales.",
+    "category": "Museos",
+    "latitude": 18.4611,
+    "longitude": -69.3055,
+    "rating": 4.8,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Museo Centro Histórico Ron Barceló/b1.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Museo Centro Histórico Ron Barceló/b1.jpg"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Museo Centro Histórico Ron Barceló/b2.jpg"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Museo Centro Histórico Ron Barceló/b3.jpg"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Museo Centro Histórico Ron Barceló/b4.jpg"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Museo Centro Histórico Ron Barceló/b5.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800"
+      }
+    ],
+    "opening_hours": "8:00 AM - 6:00 PM",
+    "phone": "+1 809-529-2677",
+    "address": "San Pedro de Macorís, República Dominicana",
+    "price_range": "$$",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 2,
+    "name": "Playa Juan Dolio",
+    "description": "Una hermosa playa con aguas cristalinas y arena blanca, perfecta para relajarse y disfrutar del mar Caribe. Ideal para familias y deportes acuáticos.",
+    "category": "Playas",
+    "latitude": 18.4167,
+    "longitude": -69.3333,
+    "rating": 4.2,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Playa Juan Dolio.webp"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Playa Juan Dolio.webp"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1520637836862-4d197d17c50a?w=800"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Playa Caribe.png"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Playa Guayacanes.webp"
+      }
+    ],
+    "opening_hours": "24 horas",
+    "phone": "",
+    "address": "Juan Dolio, San Pedro de Macorís",
+    "price_range": "Gratis",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 3,
+    "name": "Cueva de las Maravillas",
+    "description": "Una espectacular cueva con formaciones rocosas únicas y arte rupestre taíno. Un viaje fascinante a través de la historia natural y cultural de la región.",
+    "category": "Naturaleza",
+    "latitude": 18.4500,
+    "longitude": -69.2000,
+    "rating": 4.7,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/La Cueva de las Maravillas.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/La Cueva de las Maravillas.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "9:00 AM - 5:00 PM",
+    "phone": "+1 809-696-0040",
+    "address": "Carretera San Pedro-La Romana, km 18",
+    "price_range": "$$$",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 4,
+    "name": "Malecón de San Pedro de Macorís",
+    "description": "Un hermoso paseo marítimo donde puedes disfrutar de la brisa del mar, caminar al atardecer y admirar las vistas panorámicas del río Higuamo.",
+    "category": "Paseos",
+    "latitude": 18.4617,
+    "longitude": -69.3089,
+    "rating": 4.3,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/malecon.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/malecon.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "24 horas",
+    "phone": "",
+    "address": "Malecón, San Pedro de Macorís",
+    "price_range": "Gratis",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 5,
+    "name": "Catedral San Pedro Apóstol",
+    "description": "Majestuosa catedral de arquitectura colonial, símbolo religioso e histórico de la ciudad. Un lugar de paz y reflexión con hermosos vitrales.",
+    "category": "Religioso",
+    "latitude": 18.4617,
+    "longitude": -69.3089,
+    "rating": 4.5,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Catedral San Pedro Apóstol.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Catedral San Pedro Apóstol.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "6:00 AM - 7:00 PM",
+    "phone": "+1 809-529-3004",
+    "address": "Calle Duarte, San Pedro de Macorís",
+    "price_range": "Gratis",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 6,
+    "name": "Playa Boca de Soco",
+    "description": "Playa tranquila y menos concurrida, perfecta para aquellos que buscan privacidad y contacto directo con la naturaleza marina.",
+    "category": "Playas",
+    "latitude": 18.4000,
+    "longitude": -69.2500,
+    "rating": 4.1,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Playa Boca de Soco.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Playa Boca de Soco.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "24 horas",
+    "phone": "",
+    "address": "Boca de Soco, San Pedro de Macorís",
+    "price_range": "Gratis",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 7,
+    "name": "Metro Country Club",
+    "description": "Exclusivo club privado con instalaciones deportivas de primer nivel, incluyendo golf, tenis y piscina. Ambiente elegante y relajado.",
+    "category": "Deportes",
+    "latitude": 18.4700,
+    "longitude": -69.3200,
+    "rating": 4.6,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Metro Country Club.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Metro Country Club.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "6:00 AM - 10:00 PM",
+    "phone": "+1 809-526-3315",
+    "address": "Carretera San Pedro-La Romana, km 3",
+    "price_range": "$$$$",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 8,
+    "name": "Laguna Mallén",
+    "description": "Hermosa laguna natural rodeada de vegetación tropical. Ideal para la observación de aves y actividades eco-turísticas en un ambiente sereno.",
+    "category": "Naturaleza",
+    "latitude": 18.5000,
+    "longitude": -69.2800,
+    "rating": 4.4,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Laguna mallen/Laguna mallen.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Laguna mallen/Screenshot (21).png"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Laguna mallen/Screenshot (22).png"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Laguna mallen/Screenshot (23).png"
+      },
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Laguna mallen/Screenshot (24).png"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=800"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800"
+      }
+    ],
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "phone": "",
+    "address": "Laguna Mallén, San Pedro de Macorís",
+    "price_range": "$",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 9,
+    "name": "Estadio Tetelo Vargas",
+    "description": "Histórico estadio de béisbol, hogar de las Estrellas Orientales. Un lugar emblemático donde se vive la pasión por el deporte nacional dominicano.",
+    "category": "Deportes",
+    "latitude": 18.4650,
+    "longitude": -69.3100,
+    "rating": 4.2,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Estadio Tetelo Vargas.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Estadio Tetelo Vargas.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "Según programación de juegos",
+    "phone": "+1 809-529-8989",
+    "address": "Av. Circunvalación, San Pedro de Macorís",
+    "price_range": "$$",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 10,
+    "name": "Museo de Historia de San Pedro de Macorís",
+    "description": "Museo que preserva la rica historia de la ciudad, desde la época precolombina hasta la actualidad. Exhibiciones fascinantes sobre la cultura local.",
+    "category": "Museos",
+    "latitude": 18.4617,
+    "longitude": -69.3089,
+    "rating": 4.3,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Museo de Historia de San Pedro de Macorís.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Museo de Historia de San Pedro de Macorís.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "9:00 AM - 5:00 PM",
+    "phone": "+1 809-529-3542",
+    "address": "Calle Sánchez, San Pedro de Macorís",
+    "price_range": "$",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 11,
+    "name": "Playa Guayacanes",
+    "description": "Playa de aguas cristalinas con una gran variedad de actividades acuáticas. Popular entre turistas y locales por su ambiente vibrante.",
+    "category": "Playas",
+    "latitude": 18.4200,
+    "longitude": -69.3400,
+    "rating": 4.0,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Playa Guayacanes.webp"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Playa Guayacanes.webp"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "24 horas",
+    "phone": "",
+    "address": "Guayacanes, San Pedro de Macorís",
+    "price_range": "Gratis",
+    "updated_at": "2025-10-04T00:00:00Z"
+  },
+  {
+    "id": 12,
+    "name": "Parque Ecológico Pedro Mir",
+    "description": "Amplio parque natural perfecto para caminatas, picnics familiares y actividades al aire libre. Un oasis verde en el corazón de la ciudad.",
+    "category": "Parques",
+    "latitude": 18.4600,
+    "longitude": -69.3050,
+    "rating": 4.1,
+    "is_favorite": false,
+    "main_image": {
+      "type": "local",
+      "path": "assets/images/fotos/Parque Ecológico Pedro Mir.jpg"
+    },
+    "gallery_images": [
+      {
+        "type": "local",
+        "path": "assets/images/fotos/Parque Ecológico Pedro Mir.jpg"
+      },
+      {
+        "type": "remote",
+        "path": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop"
+      }
+    ],
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "phone": "",
+    "address": "San Pedro de Macorís Centro",
+    "price_range": "Gratis",
+    "updated_at": "2025-10-04T00:00:00Z"
+  }
+]

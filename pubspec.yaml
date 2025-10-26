@@ -1,0 +1,43 @@
+name: spm
+display_name: Rutas Spm
+description: "App de turismo para San Pedro de Macorís."
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.0.10
+  font_awesome_flutter: ^10.7.0
+  shared_preferences: ^2.2.1
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  http: ^1.1.0
+  cached_network_image: ^3.3.0
+
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/screen1.png
+    - assets/images/screen2.png
+    - assets/images/screen3.png
+    - assets/icons/
+    - assets/images/fotos/
+    - assets/images/fotos/Laguna mallen/
+    - assets/images/fotos/Museo Centro Histórico Ron Barceló/
+    - assets/data/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/spm_logo.svg"
+  min_sdk_android: 21
