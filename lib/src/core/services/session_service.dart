@@ -78,20 +78,24 @@ class SessionService extends ChangeNotifier {
     }
   }
 
-  // Alternar favorito y actualizar sesión
+  // ✅ Toggle favorito con notificación de cambios
   Future<void> toggleFavorite(int placeId) async {
     if (_currentUser == null) return;
 
     try {
       await _databaseService.toggleFavorite(_currentUser!.id, placeId);
 
-      // Actualizar el usuario actual con los nuevos favoritos
+      // Actualizar el usuario con los favoritos actualizados
       final updatedUser = await _databaseService.getUser(_currentUser!.id);
       if (updatedUser != null) {
         await updateUser(updatedUser);
       }
+
+      // Notificar a los listeners que los favoritos cambiaron
+      notifyListeners();
     } catch (e) {
       debugPrint('Error toggling favorite: $e');
+      rethrow;
     }
   }
 

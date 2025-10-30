@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:spm/src/core/theme/colors/app_colors.dart';
 import 'package:spm/src/core/models/place_detail.dart';
+import 'package:spm/src/core/services/session_service.dart'; // ✅ Agregar
+import 'package:spm/src/shared/widgets/app_snackbar.dart'; // ✅ Agregar
 import 'package:spm/src/shared/widgets/main_navigator.dart';
 
 class ViewDetailScreen extends StatefulWidget {
@@ -17,14 +19,28 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
   bool _showGallery = false;
   bool _showReservationConfirmation = false;
   final PageController _galleryController = PageController();
+  late bool _isFavorite; // ✅ Estado local de favorito
+  final SessionService _sessionService = SessionService(); // ✅ Servicio
 
-  // Imágenes de galería simuladas
-  final List<String> _galleryImages = [
-    'assets/images/fotos/Museo Centro Histórico Ron Barceló/Museo Centro Histórico Ron Barceló.jpg',
-    'assets/images/fotos/Playa Juan Dolio.webp',
-    'assets/images/fotos/malecon.jpg',
-    'assets/images/fotos/campo azul.jpg',
-  ];
+  // ✅ Usar imágenes de galería desde el place
+  List<String> get _galleryImages {
+    if (widget.place.galleryImages.isNotEmpty) {
+      // ✅ Sin null check innecesario
+      return widget.place.galleryImages;
+    }
+    // Fallback a imágenes por defecto
+    return [
+      widget.place.imagePath,
+      'assets/images/fotos/Playa Juan Dolio.webp',
+      'assets/images/fotos/malecon.jpg',
+    ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorite = widget.place.isFavorite;
+  }
 
   @override
   void dispose() {
@@ -32,10 +48,67 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
     super.dispose();
   }
 
-  void _showReservation() {
-    setState(() {
-      _showReservationConfirmation = true;
-    });
+  // ✅ Nuevo método para toggle favorito
+  Future<void> _toggleFavorite() async {
+    try {
+      await _sessionService.toggleFavorite(widget.place.id);
+      setState(() {
+        _isFavorite = !_isFavorite;
+      });
+      if (mounted) {
+        AppSnackBar.showSuccess(
+          context,
+          _isFavorite ? 'Agregado a favoritos' : 'Eliminado de favoritos',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.showError(context, 'Error al actualizar favoritos');
+      }
+    }
+  }
+
+  // ✅ Nuevo método para crear reserva
+  Future<void> _showReservation() async {
+    // Mostrar DatePicker
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      helpText: 'Selecciona fecha de visita',
+      cancelText: 'Cancelar',
+      confirmText: 'Confirmar',
+    );
+
+    if (selectedDate == null) return;
+
+    // Mostrar loading
+    if (!mounted) return;
+    AppSnackBar.showLoading(context, 'Creando reserva...');
+
+    try {
+      final success = await _sessionService.createReservation(
+        widget.place.id,
+        selectedDate,
+        'Reserva desde la app SPM',
+      );
+
+      if (!mounted) return;
+      AppSnackBar.hide(context);
+
+      if (success) {
+        setState(() {
+          _showReservationConfirmation = true;
+        });
+      } else {
+        AppSnackBar.showError(context, 'Error al crear la reserva');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      AppSnackBar.hide(context);
+      AppSnackBar.showError(context, 'Error al crear la reserva');
+    }
   }
 
   void _goToHome() {
@@ -66,16 +139,10 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
                 actions: [
                   IconButton(
                     icon: Icon(
-                      widget.place.isFavorite
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: widget.place.isFavorite
-                          ? Colors.red
-                          : Colors.white,
+                      _isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: _isFavorite ? Colors.red : Colors.white,
                     ),
-                    onPressed: () {
-                      // Toggle favorite
-                    },
+                    onPressed: _toggleFavorite, // ✅ Funcionalidad implementada
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -93,7 +160,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
                           ),
                         ),
                       ),
-                      // Botón "Ver más fotos" arriba de la imagen
+                      // Botón "Ver más fotos"
                       Positioned(
                         bottom: 20,
                         left: 0,
@@ -131,7 +198,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
                 ),
               ),
 
-              // Contenido con esquinas redondeadas superiores (más pronunciadas)
+              // Contenido con esquinas redondeadas
               SliverToBoxAdapter(
                 child: Container(
                   decoration: const BoxDecoration(
@@ -146,7 +213,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Nombre del lugar
+                        // Nombre
                         Text(
                           widget.place.name,
                           style: const TextStyle(
@@ -185,7 +252,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
 
                         const SizedBox(height: 32),
 
-                        // Mini imágenes de galería
+                        // Mini imágenes
                         SizedBox(
                           height: 80,
                           child: ListView.builder(
@@ -217,12 +284,13 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
 
                         const SizedBox(height: 40),
 
-                        // Botón de reserva (más corto)
+                        // Botón de reserva
                         Center(
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.5,
                             child: ElevatedButton(
-                              onPressed: _showReservation,
+                              onPressed:
+                                  _showReservation, // ✅ Funcionalidad implementada
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
@@ -268,7 +336,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
                   color: AppColors.primary.withValues(alpha: 0.4),
                   child: Center(
                     child: GestureDetector(
-                      onTap: () {}, // Evitar que el tap pase al fondo
+                      onTap: () {},
                       child: SizedBox(
                         height: 400,
                         child: PageView.builder(
@@ -304,10 +372,10 @@ class _ViewDetailScreenState extends State<ViewDetailScreen> {
               ),
             ),
 
-          // Confirmación de reserva con blur blanco
+          // Confirmación de reserva
           if (_showReservationConfirmation)
             GestureDetector(
-              onTap: () {}, // No cerrar al tocar
+              onTap: () {},
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(

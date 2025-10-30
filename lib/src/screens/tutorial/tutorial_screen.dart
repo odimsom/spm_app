@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:spm/src/core/theme/colors/app_colors.dart';
+import 'package:spm/src/core/utils/tutorial_helper.dart'; // ✅ Agregar import
 import 'package:spm/src/screens/auth/login/login_screen.dart';
 import 'package:spm/src/screens/auth/register/register_screen.dart';
 import 'package:spm/src/screens/tutorial/components/tutorial_page.dart';
@@ -28,6 +29,17 @@ class _TutorialScreenState extends State<TutorialScreen> {
     });
   }
 
+  /// Marcar tutorial como visto y navegar a Login
+  Future<void> _completeTutorial() async {
+    await TutorialHelper.markTutorialAsSeen();
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,14 +53,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: _completeTutorial, // ✅ Llamar al método
                   child: Text(
                     "Omitir",
                     style: TextStyle(
@@ -95,14 +100,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                             borderRadius: BorderRadius.circular(25),
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                          );
-                        },
+                        onPressed: _completeTutorial, // ✅ Marcar como visto
                         child: const Text(
                           "Iniciar sesión",
                           style: TextStyle(fontSize: 16),
@@ -118,11 +116,15 @@ class _TutorialScreenState extends State<TutorialScreen> {
                             borderRadius: BorderRadius.circular(25),
                           ),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
+                          await TutorialHelper.markTutorialAsSeen();
+                          if (!mounted)
+                            return; // ✅ Verificar mounted antes del context
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => RegisterScreen(),
+                              builder: (context) => const RegisterScreen(),
                             ),
                           );
                         },
@@ -137,22 +139,22 @@ class _TutorialScreenState extends State<TutorialScreen> {
               ),
             ),
 
-            // Indicadores de página - Subido un poco más arriba
+            // Indicadores de página
             Padding(
               padding: const EdgeInsets.only(bottom: 40.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Botón para retroceder (solo visible después de la primera página)
+                  // Botón retroceder
                   if (_currentPage > 0)
                     SizedBox(
-                      width: 60, // Botón más ancho
+                      width: 60,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.primary,
                           elevation: 2,
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 8,
                           ),
@@ -166,29 +168,29 @@ class _TutorialScreenState extends State<TutorialScreen> {
                             curve: Curves.easeInOut,
                           );
                         },
-                        child: Icon(Icons.arrow_back_ios, size: 20),
+                        child: const Icon(Icons.arrow_back_ios, size: 20),
                       ),
                     ),
 
-                  // Indicadores de página
+                  // Indicadores
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: TutorialPageIndicator(
                       currentPage: _currentPage,
                       totalPages: 3,
                     ),
                   ),
 
-                  // Botón para avanzar (visible solo en las primeras 2 páginas)
+                  // Botón avanzar
                   if (_currentPage < 2)
                     SizedBox(
-                      width: 60, // Botón más ancho
+                      width: 60,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.primary,
                           elevation: 2,
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 8,
                           ),
@@ -202,7 +204,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                             curve: Curves.easeInOut,
                           );
                         },
-                        child: Icon(Icons.arrow_forward_ios, size: 20),
+                        child: const Icon(Icons.arrow_forward_ios, size: 20),
                       ),
                     ),
                 ],

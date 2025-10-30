@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spm/src/core/theme/colors/app_colors.dart';
+import 'package:spm/src/core/services/places_service.dart'; // ✅ Agregar
+import 'package:spm/src/core/models/place.dart'; // ✅ Agregar
 import 'package:spm/src/screens/detail/view_detail_screen.dart';
 import 'package:spm/src/core/models/place_detail.dart';
 
@@ -12,107 +14,88 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final PlacesService _placesService = PlacesService();
+
   String _searchQuery = "";
-  final List<String> _recentSearches = ["Playa", "Museo", "Restaurante"];
+  final List<String> _recentSearches = [
+    "Playa",
+    "Museo",
+    "Restaurante",
+  ]; // ✅ Ahora final
 
-  final List<PlaceCategory> _categories = [
-    PlaceCategory(
-      name: "Lugares de interés",
-      places: [
-        PlaceInfo(
-          name: "Laguna de Nisibon",
-          imagePath: "assets/images/fotos/Laguna mallen/Laguna mallen.jpg",
-          rating: 4.8,
-          isFavorite: true,
-        ),
-        PlaceInfo(
-          name: "Playa de Guayacanes",
-          imagePath: "assets/images/fotos/Playa Guayacanes.jpg",
-          rating: 4.6,
-          isFavorite: false,
-        ),
-      ],
-    ),
-    PlaceCategory(
-      name: "Playas cercanas",
-      places: [
-        PlaceInfo(
-          name: "Playa Juan Dolio",
-          imagePath: "assets/images/fotos/Playa Juan Dolio.webp",
-          rating: 4.5,
-          isFavorite: true,
-        ),
-      ],
-    ),
-    PlaceCategory(
-      name: "Museos",
-      places: [
-        PlaceInfo(
-          name: "Museo Ron Barceló",
-          imagePath:
-              "assets/images/fotos/Museo Centro Histórico Ron Barceló/Museo Centro Histórico Ron Barceló.jpg",
-          rating: 4.7,
-          isFavorite: true,
-        ),
-      ],
-    ),
-    PlaceCategory(
-      name: "Ecoturismo",
-      places: [
-        PlaceInfo(
-          name: "Cueva las Maravillas",
-          imagePath: "assets/images/fotos/La Cueva de las Maravillas.jpg",
-          rating: 4.9,
-          isFavorite: true,
-        ),
-        PlaceInfo(
-          name: "Campo Azul",
-          imagePath: "assets/images/fotos/campo azul.jpg",
-          rating: 4.3,
-          isFavorite: false,
-        ),
-      ],
-    ),
-    PlaceCategory(
-      name: "Sitios históricos",
-      places: [
-        PlaceInfo(
-          name: "Malecón SPM",
-          imagePath: "assets/images/fotos/malecon.jpg",
-          rating: 4.5,
-          isFavorite: true,
-        ),
-      ],
-    ),
-  ];
-
-  List<PlaceCategory> get _filteredCategories {
-    if (_searchQuery.isEmpty) return _categories;
-
-    return _categories
-        .map((category) {
-          final filteredPlaces = category.places
-              .where(
-                (place) => place.name.toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
-                ),
-              )
-              .toList();
-
-          return PlaceCategory(name: category.name, places: filteredPlaces);
-        })
-        .where((category) => category.places.isNotEmpty)
-        .toList();
-  }
+  // ✅ Cambiar a usar datos reales
+  List<Place> _allPlaces = [];
+  Map<String, List<Place>> _categorizedPlaces = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadPlaces(); // ✅ Cargar desde SQLite
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
       });
     });
+  }
+
+  // ✅ Nuevo método para cargar desde SQLite
+  Future<void> _loadPlaces() async {
+    try {
+      final places = await _placesService.getAllPlaces();
+
+      // Categorizar lugares
+      Map<String, List<Place>> categorized = {};
+      for (var place in places) {
+        if (!categorized.containsKey(place.category)) {
+          categorized[place.category] = [];
+        }
+        categorized[place.category]!.add(place);
+      }
+
+      setState(() {
+        _allPlaces = places;
+        _categorizedPlaces = categorized;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error cargando lugares: $e')));
+      }
+    }
+  }
+
+  // ✅ Nuevo método para búsqueda
+  List<Place> get _filteredPlaces {
+    if (_searchQuery.isEmpty) return [];
+
+    return _allPlaces.where((place) {
+      return place.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          place.category.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          place.description.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
+  // ✅ Categorías filtradas
+  Map<String, List<Place>> get _displayedCategories {
+    if (_searchQuery.isNotEmpty) {
+      // Mostrar solo resultados de búsqueda
+      Map<String, List<Place>> filtered = {};
+      for (var place in _filteredPlaces) {
+        if (!filtered.containsKey(place.category)) {
+          filtered[place.category] = [];
+        }
+        filtered[place.category]!.add(place);
+      }
+      return filtered;
+    }
+    // Mostrar todas las categorías
+    return _categorizedPlaces;
   }
 
   @override
@@ -160,93 +143,90 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
             style: const TextStyle(color: Colors.black87, fontSize: 15),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
 
-            // Búsquedas recientes
-            if (_searchQuery.isEmpty) ...[
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: Text(
-                  "Búsquedas recientes",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
+                  // Búsquedas recientes
+                  if (_searchQuery.isEmpty) ...[
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: Text(
+                        "Búsquedas recientes",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _recentSearches.map((search) {
+                          return Chip(
+                            label: Text(search),
+                            backgroundColor: Colors.grey.shade200,
+                            deleteIcon: const Icon(Icons.close, size: 16),
+                            onDeleted: () {
+                              setState(() {
+                                _recentSearches.remove(search);
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Resultados
+                  if (_displayedCategories.isEmpty && _searchQuery.isNotEmpty)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              "No se encontraron resultados",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ..._displayedCategories.entries.map((entry) {
+                      return _buildCategorySection(entry.key, entry.value);
+                    }),
+
+                  const SizedBox(height: 80),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _recentSearches.map((search) {
-                    return Chip(
-                      label: Text(search),
-                      backgroundColor: Colors.grey.shade200,
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      onDeleted: () {
-                        setState(() {
-                          _recentSearches.remove(search);
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Resultados
-            ..._buildSearchResults(),
-
-            const SizedBox(height: 80),
-          ],
-        ),
-      ),
+            ),
     );
   }
 
-  List<Widget> _buildSearchResults() {
-    if (_filteredCategories.isEmpty && _searchQuery.isNotEmpty) {
-      return [
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              children: [
-                Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
-                const SizedBox(height: 16),
-                Text(
-                  "No se encontraron resultados",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ];
-    }
-
-    return _filteredCategories.map((category) {
-      return _buildCategorySection(category);
-    }).toList();
-  }
-
-  Widget _buildCategorySection(PlaceCategory category) {
+  Widget _buildCategorySection(String categoryName, List<Place> places) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -256,20 +236,23 @@ class _SearchScreenState extends State<SearchScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                category.name,
+                categoryName,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  "Ver más",
-                  style: TextStyle(color: AppColors.primary),
+              if (places.length > 2)
+                TextButton(
+                  onPressed: () {
+                    // TODO: Navegar a vista de categoría completa
+                  },
+                  child: Text(
+                    "Ver más",
+                    style: TextStyle(color: AppColors.primary),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -278,10 +261,9 @@ class _SearchScreenState extends State<SearchScreen> {
           child: ListView.builder(
             padding: const EdgeInsets.only(left: 16),
             scrollDirection: Axis.horizontal,
-            itemCount: category.places.length,
+            itemCount: places.length > 5 ? 5 : places.length,
             itemBuilder: (context, index) {
-              final place = category.places[index];
-              return _buildPlaceCard(place);
+              return _buildPlaceCard(places[index]);
             },
           ),
         ),
@@ -290,9 +272,10 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildPlaceCard(PlaceInfo place) {
+  Widget _buildPlaceCard(Place place) {
     return GestureDetector(
       onTap: () {
+        // Guardar búsqueda reciente
         if (_searchQuery.isNotEmpty &&
             !_recentSearches.contains(_searchQuery)) {
           setState(() {
@@ -303,14 +286,15 @@ class _SearchScreenState extends State<SearchScreen> {
           });
         }
 
+        // Navegar a detalle
         final placeDetail = PlaceDetail(
           id: place.id,
           name: place.name,
-          imagePath: place.imagePath,
+          imagePath: place.mainImage.path,
           rating: place.rating,
-          description:
-              "Podrán sumergirse en un ambiente ecléctico antiguo y moderno, con piezas y objetos que despertarán su curiosidad.",
+          description: place.description,
           isFavorite: place.isFavorite,
+          galleryImages: place.galleryImages.map((img) => img.path).toList(),
         );
 
         Navigator.push(
@@ -339,19 +323,14 @@ class _SearchScreenState extends State<SearchScreen> {
             fit: StackFit.expand,
             children: [
               Image.asset(
-                place.imagePath,
+                place.mainImage.path,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey[300],
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.image_not_supported,
-                        size: 40,
-                        color: Colors.grey[600],
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.image_not_supported,
+                    size: 40,
+                    color: Colors.grey[600],
                   ),
                 ),
               ),
@@ -411,8 +390,8 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Container(
                   width: 32,
                   height: 32,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -428,27 +407,4 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
-}
-
-class PlaceInfo {
-  final int id;
-  final String name;
-  final String imagePath;
-  final double rating;
-  final bool isFavorite;
-
-  PlaceInfo({
-    int? id,
-    required this.name,
-    required this.imagePath,
-    required this.rating,
-    this.isFavorite = false,
-  }) : id = id ?? name.hashCode.abs();
-}
-
-class PlaceCategory {
-  final String name;
-  final List<PlaceInfo> places;
-
-  PlaceCategory({required this.name, required this.places});
 }

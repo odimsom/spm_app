@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spm/src/core/theme/app_theme.dart';
 import 'package:spm/src/core/services/session_service.dart';
-import 'package:spm/src/screens/tutorial/tutorial_screen.dart';
+import 'package:spm/src/screens/loading/splash_screen.dart'; // ✅ Cambiar import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +21,7 @@ class MainApp extends StatelessWidget {
       title: 'Rutas SPM',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      home: const TutorialScreen(),
+      home: const SplashScreen(), // ✅ Cambiar a SplashScreen
     );
   }
 }

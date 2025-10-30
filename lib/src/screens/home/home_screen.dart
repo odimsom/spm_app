@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:spm/src/core/theme/colors/app_colors.dart';
+import 'package:spm/src/core/services/places_service.dart'; // ✅ Agregar
+import 'package:spm/src/core/models/place.dart'; // ✅ Agregar
 import 'package:spm/src/screens/detail/view_detail_screen.dart';
 import 'package:spm/src/core/models/place_detail.dart';
 import 'package:spm/src/screens/favorites/new_favorites_screen.dart';
@@ -19,77 +21,28 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentCarouselPage = 0;
   Timer? _autoScrollTimer;
 
-  // Lugares para el carrusel (los mismos que tenías)
-  final List<Map<String, dynamic>> _featuredPlaces = [
-    {
-      'name': 'Museo Ron Barceló',
-      'imagePath':
-          'assets/images/fotos/Museo Centro Histórico Ron Barceló/Museo Centro Histórico Ron Barceló.jpg',
-      'rating': 4.5,
-      'isFavorite': true,
-    },
-    {
-      'name': 'Playa Juan Dolio',
-      'imagePath': 'assets/images/fotos/Playa Juan Dolio.webp',
-      'rating': 4.0,
-      'isFavorite': false,
-    },
-  ];
-
-  // Lugares recomendados (los mismos que tenías)
-  final List<Map<String, dynamic>> _recommendedPlaces = [
-    {
-      'name': 'Laguna de Mallen',
-      'imagePath': 'assets/images/fotos/Laguna mallen/Laguna mallen.jpg',
-      'rating': 5.0,
-      'isFavorite': false,
-    },
-    {
-      'name': 'Malecón SPM',
-      'imagePath': 'assets/images/fotos/malecon.jpg',
-      'rating': 4.5,
-      'isFavorite': false,
-    },
-    {
-      'name': 'Playa Juan Dolio',
-      'imagePath': 'assets/images/fotos/Playa Juan Dolio.webp',
-      'rating': 4.0,
-      'isFavorite': false,
-    },
-    {
-      'name': 'Cueva las Maravillas',
-      'imagePath': 'assets/images/fotos/La Cueva de las Maravillas.jpg',
-      'rating': 4.5,
-      'isFavorite': true,
-    },
-    {
-      'name': 'Museo Ron Barceló',
-      'imagePath':
-          'assets/images/fotos/Museo Centro Histórico Ron Barceló/Museo Centro Histórico Ron Barceló.jpg',
-      'rating': 5.0,
-      'isFavorite': true,
-    },
-    {
-      'name': 'Campo Azul',
-      'imagePath': 'assets/images/fotos/campo azul.jpg',
-      'rating': 4.0,
-      'isFavorite': false,
-    },
-  ];
+  // ✅ Cambiar a usar Place real de SQLite
+  List<Place> _featuredPlaces = [];
+  List<Place> _recommendedPlaces = [];
+  bool _isLoading = true;
+  final PlacesService _placesService = PlacesService();
 
   @override
   void initState() {
     super.initState();
     _carouselController = PageController(
-      viewportFraction: 0.85, // Muestra 1 card + medio del siguiente
+      viewportFraction: 0.85,
       initialPage: 0,
     );
-    _startAutoScroll();
+
+    // ✅ Cargar datos desde SQLite
+    _loadPlaces();
 
     _carouselController.addListener(() {
       if (_carouselController.hasClients) {
         int page = _carouselController.page?.round() ?? 0;
-        int actualPage = page % _featuredPlaces.length;
+        int actualPage =
+            page % (_featuredPlaces.isEmpty ? 1 : _featuredPlaces.length);
         if (actualPage != _currentCarouselPage) {
           setState(() {
             _currentCarouselPage = actualPage;
@@ -99,9 +52,37 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // ✅ Nuevo método para cargar desde SQLite
+  Future<void> _loadPlaces() async {
+    try {
+      final featured = await _placesService.getFeaturedPlaces(limit: 2);
+      final recommended = await _placesService.getRecommendedPlaces(limit: 6);
+
+      setState(() {
+        _featuredPlaces = featured;
+        _recommendedPlaces = recommended;
+        _isLoading = false;
+      });
+
+      // Iniciar auto-scroll solo si hay lugares
+      if (_featuredPlaces.isNotEmpty) {
+        _startAutoScroll();
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error cargando lugares: $e')));
+      }
+    }
+  }
+
   void _startAutoScroll() {
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (_carouselController.hasClients) {
+      if (_carouselController.hasClients && _featuredPlaces.isNotEmpty) {
         int nextPage = (_carouselController.page?.toInt() ?? 0) + 1;
         _carouselController.animateToPage(
           nextPage,
@@ -139,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             onPressed: () {
               if (widget.onNavigate != null) {
-                widget.onNavigate!(2); // Navegar a SearchScreen
+                widget.onNavigate!(2);
               }
             },
             icon: const Icon(Icons.search, color: Colors.black87),
@@ -148,114 +129,123 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          // Carrusel automático con scroll infinito
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 200,
-                  child: PageView.builder(
-                    controller: _carouselController,
-                    itemCount: _featuredPlaces.length * 1000, // Scroll infinito
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentCarouselPage = index % _featuredPlaces.length;
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      final place =
-                          _featuredPlaces[index % _featuredPlaces.length];
-                      return _buildCarouselCard(place);
-                    },
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : CustomScrollView(
+              slivers: [
+                // Carrusel automático
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      if (_featuredPlaces.isNotEmpty)
+                        SizedBox(
+                          height: 200,
+                          child: PageView.builder(
+                            controller: _carouselController,
+                            itemCount: _featuredPlaces.length * 1000,
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentCarouselPage =
+                                    index % _featuredPlaces.length;
+                              });
+                            },
+                            itemBuilder: (context, index) {
+                              final place =
+                                  _featuredPlaces[index %
+                                      _featuredPlaces.length];
+                              return _buildCarouselCard(place);
+                            },
+                          ),
+                        ),
+
+                      // Indicadores de página
+                      if (_featuredPlaces.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              _featuredPlaces.length,
+                              (index) => AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                width: 8,
+                                height: 8,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: index == _currentCarouselPage
+                                      ? AppColors.primary
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
 
-                // Indicadores de página
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _featuredPlaces.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        width: 8,
-                        height: 8,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: index == _currentCarouselPage
-                              ? AppColors.primary
-                              : Colors.grey.shade300,
+                // Header de recomendados
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Recomendados',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
+                        GestureDetector(
+                          onTap: () {
+                            if (widget.onNavigate != null) {
+                              widget.onNavigate!(2);
+                            }
+                          },
+                          child: Text(
+                            'Ver más',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                ),
+
+                // Grid de lugares recomendados
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.85,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final place = _recommendedPlaces[index];
+                      return _buildPlaceCard(place);
+                    }, childCount: _recommendedPlaces.length),
                   ),
                 ),
               ],
             ),
-          ),
-
-          // Header de recomendados
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Recomendados',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      if (widget.onNavigate != null) {
-                        widget.onNavigate!(2); // Navegar a SearchScreen
-                      }
-                    },
-                    child: Text(
-                      'Ver más',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Grid de lugares recomendados (lazy loading)
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.85,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final place = _recommendedPlaces[index];
-                return _buildPlaceCard(place);
-              }, childCount: _recommendedPlaces.length),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildCarouselCard(Map<String, dynamic> place) {
+  Widget _buildCarouselCard(Place place) {
     return GestureDetector(
       onTap: () => _navigateToDetail(place),
       child: Container(
@@ -277,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // Imagen
               Image.asset(
-                place['imagePath'],
+                place.mainImage.path,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey[300],
@@ -289,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Gradiente oscuro en la parte inferior
+              // Gradiente
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -304,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Contenido inferior izquierdo (nombre y estrellas)
+              // Contenido
               Positioned(
                 bottom: 12,
                 left: 12,
@@ -314,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      place['name'],
+                      place.name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -324,12 +314,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    _buildStarRating(place['rating'], size: 18),
+                    _buildStarRating(place.rating, size: 18),
                   ],
                 ),
               ),
 
-              // Corazón de favorito (superior derecho)
+              // Favorito
               Positioned(
                 top: 12,
                 right: 12,
@@ -350,10 +340,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      place['isFavorite']
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: place['isFavorite']
+                      place.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: place.isFavorite
                           ? Colors.red
                           : Colors.grey.shade600,
                       size: 20,
@@ -368,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPlaceCard(Map<String, dynamic> place) {
+  Widget _buildPlaceCard(Place place) {
     return GestureDetector(
       onTap: () => _navigateToDetail(place),
       child: Container(
@@ -387,9 +375,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Imagen
               Image.asset(
-                place['imagePath'],
+                place.mainImage.path,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey[300],
@@ -401,7 +388,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Gradiente oscuro
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -416,7 +402,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Contenido inferior izquierdo
               Positioned(
                 bottom: 10,
                 left: 10,
@@ -426,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      place['name'],
+                      place.name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -436,12 +421,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    _buildStarRating(place['rating'], size: 14),
+                    _buildStarRating(place.rating, size: 14),
                   ],
                 ),
               ),
 
-              // Corazón de favorito
               Positioned(
                 top: 10,
                 right: 10,
@@ -462,10 +446,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      place['isFavorite']
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: place['isFavorite']
+                      place.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: place.isFavorite
                           ? Colors.red
                           : Colors.grey.shade600,
                       size: 18,
@@ -480,19 +462,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Widget para construir las estrellas visuales
   Widget _buildStarRating(double rating, {double size = 16}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (index) {
         if (index < rating.floor()) {
-          // Estrella llena
           return Icon(Icons.star, color: Colors.amber, size: size);
         } else if (index < rating && rating % 1 >= 0.5) {
-          // Media estrella
           return Icon(Icons.star_half, color: Colors.amber, size: size);
         } else {
-          // Estrella vacía
           return Icon(
             Icons.star_border,
             color: Colors.grey.shade400,
@@ -503,14 +481,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _navigateToDetail(Map<String, dynamic> place) {
+  void _navigateToDetail(Place place) {
     final placeDetail = PlaceDetail(
-      name: place['name'],
-      imagePath: place['imagePath'],
-      rating: place['rating'],
-      description:
-          'Podrán sumergirse en un ambiente ecléctico antiguo y moderno, con piezas y objetos que despertarán su curiosidad y les envolverán en un ambiente de descubrimiento.',
-      isFavorite: place['isFavorite'],
+      id: place.id,
+      name: place.name,
+      imagePath: place.mainImage.path,
+      rating: place.rating,
+      description: place.description,
+      isFavorite: place.isFavorite,
+      galleryImages: place.galleryImages.map((img) => img.path).toList(),
     );
 
     Navigator.push(

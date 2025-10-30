@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
 
   bool _isLoading = false;
+  bool _obscurePassword = true; // ✅ Estado para mostrar/ocultar contraseña
   Map<String, String?> _fieldErrors = {};
 
   @override
@@ -212,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 16),
 
-                // Campo de contraseña sin label, solo placeholder
+                // Campo de contraseña con botón mostrar/ocultar
                 Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F5F5),
@@ -220,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: TextField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: _obscurePassword, // ✅ Controlado por estado
                     decoration: InputDecoration(
                       hintText: 'Contraseña',
                       hintStyle: const TextStyle(
@@ -254,6 +255,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 18,
+                      ),
+                      // ✅ Botón para mostrar/ocultar contraseña
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey[600],
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
                       ),
                       errorText: _fieldErrors['password'],
                     ),

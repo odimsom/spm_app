@@ -27,9 +27,8 @@ class _NewViewDetailScreenState extends State<NewViewDetailScreen> {
     final sessionService = SessionService();
 
     if (!sessionService.isLoggedIn) {
-      if (mounted) {
-        AppSnackBar.showError(context, 'Inicia sesión para hacer reservas');
-      }
+      if (!mounted) return; // ✅ Verificar mounted
+      AppSnackBar.showError(context, 'Inicia sesión para hacer reservas');
       return;
     }
 
@@ -44,28 +43,24 @@ class _NewViewDetailScreenState extends State<NewViewDetailScreen> {
       confirmText: 'Confirmar',
     );
 
-    if (selectedDate == null) return;
+    if (selectedDate == null || !mounted) return; // ✅ Verificar mounted
 
-    // Show loading
-    if (!mounted) return;
     AppSnackBar.showLoading(context, 'Creando reserva...');
 
     try {
-      // Use the place ID from PlaceDetail
       final success = await sessionService.createReservation(
         widget.place.id,
         selectedDate,
         'Reserva desde la app SPM',
       );
 
-      if (!mounted) return;
+      if (!mounted) return; // ✅ Verificar mounted
 
       AppSnackBar.hide(context);
 
       if (success) {
         AppSnackBar.showSuccess(context, 'Reserva creada exitosamente');
 
-        // Navigate to confirmation screen
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -79,7 +74,7 @@ class _NewViewDetailScreenState extends State<NewViewDetailScreen> {
         AppSnackBar.showError(context, 'Error al crear la reserva');
       }
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return; // ✅ Verificar mounted
       AppSnackBar.hide(context);
       AppSnackBar.showError(context, 'Error al crear la reserva: $e');
     }

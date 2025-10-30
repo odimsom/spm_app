@@ -4,8 +4,13 @@ import 'package:spm/src/core/utils/app_constants.dart';
 import 'package:spm/src/core/models/user.dart';
 import 'package:spm/src/core/services/places_service.dart';
 import 'package:spm/src/core/services/auth_service.dart';
+import 'package:spm/src/core/services/session_service.dart';
+import 'package:spm/src/shared/widgets/app_snackbar.dart';
 import 'package:spm/src/screens/auth/login/login_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:io';
+// ✅ Agregar dependencia para seleccionar imagen (agregar a pubspec.yaml si no existe)
+// import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,8 +22,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserService _userService = UserService();
   final AuthService _authService = AuthService();
+  final SessionService _sessionService = SessionService();
+  // final ImagePicker _picker = ImagePicker(); // ✅ Descomentar cuando agregues image_picker
+
   User? _currentUser;
   bool _isLoading = true;
+  File? _selectedImage; // ✅ Imagen seleccionada localmente
 
   @override
   void initState() {
@@ -37,6 +46,214 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  // ✅ Método para seleccionar imagen
+  Future<void> _pickImage() async {
+    try {
+      // TODO: Descomentar cuando agregues image_picker a pubspec.yaml
+      /*
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+
+        if (mounted) {
+          AppSnackBar.showSuccess(context, 'Imagen seleccionada correctamente');
+        }
+
+        // TODO: Aquí puedes subir la imagen a un servidor o guardarla localmente
+        // await _uploadProfileImage(_selectedImage!);
+      }
+      */
+
+      // Placeholder mientras tanto
+      if (mounted) {
+        AppSnackBar.showInfo(
+          context,
+          'Función de cambio de imagen próximamente',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.showError(context, 'Error al seleccionar imagen');
+      }
+    }
+  }
+
+  // ✅ Método para cambiar nombre (ya existente, mejorado)
+  Future<void> _showChangeNameDialog() async {
+    final TextEditingController nameController = TextEditingController(
+      text: _currentUser?.name ?? '',
+    );
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Cambiar nombre'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: 'Nuevo nombre',
+            hintText: 'Ingresa tu nuevo nombre',
+            prefixIcon: Icon(Icons.person_outline),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, nameController.text.trim()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty && result != _currentUser?.name) {
+      if (mounted) {
+        AppSnackBar.showLoading(context, 'Actualizando nombre...');
+      }
+
+      try {
+        if (_currentUser != null) {
+          final updatedUser = User(
+            id: _currentUser!.id,
+            name: result,
+            email: _currentUser!.email,
+            profileImage: _currentUser!.profileImage,
+            favoriteIds: _currentUser!.favoriteIds,
+            reservationIds: _currentUser!.reservationIds,
+            createdAt: _currentUser!.createdAt,
+            updatedAt: DateTime.now(),
+          );
+          await _sessionService.updateUser(updatedUser);
+
+          setState(() {
+            _currentUser = updatedUser;
+          });
+
+          if (mounted) {
+            AppSnackBar.hide(context);
+            AppSnackBar.showSuccess(
+              context,
+              'Nombre actualizado correctamente',
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          AppSnackBar.hide(context);
+          AppSnackBar.showError(context, 'Error al actualizar el nombre');
+        }
+      }
+    }
+  }
+
+  // ✅ Nuevo método para cambiar contraseña
+  Future<void> _showChangePasswordDialog() async {
+    final TextEditingController currentPasswordController =
+        TextEditingController();
+    final TextEditingController newPasswordController = TextEditingController();
+    final TextEditingController confirmPasswordController =
+        TextEditingController();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cambiar contraseña'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: currentPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Contraseña actual',
+                  prefixIcon: Icon(Icons.lock_outline),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresa tu contraseña actual';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: newPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Nueva contraseña',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresa una nueva contraseña';
+                  }
+                  if (value.length < 6) {
+                    return 'Mínimo 6 caracteres';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: confirmPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirmar contraseña',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                validator: (value) {
+                  if (value != newPasswordController.text) {
+                    return 'Las contraseñas no coinciden';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text('Cambiar'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true && mounted) {
+      AppSnackBar.showSuccess(context, 'Contraseña actualizada correctamente');
+      // TODO: En producción, aquí se implementaría el cambio real de contraseña
     }
   }
 
@@ -68,7 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: AppResponsive.getResponsivePadding(context),
           child: Column(
             children: [
-              // Logo section - reduced size
+              // Logo section
               Expanded(
                 flex: 2,
                 child: Column(
@@ -91,7 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
 
-              // Profile picture and name section
+              // ✅ Profile picture with edit button
               Expanded(
                 flex: 2,
                 child: _isLoading
@@ -99,33 +316,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            width: availableHeight * 0.12,
-                            height: availableHeight * 0.12,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.primary,
-                                width: 2,
+                          // ✅ Imagen de perfil con botón de edición
+                          Stack(
+                            children: [
+                              Container(
+                                width: availableHeight * 0.12,
+                                height: availableHeight * 0.12,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: ClipOval(
+                                  child: _selectedImage != null
+                                      ? Image.file(
+                                          _selectedImage!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.asset(
+                                          'assets/images/profile.png',
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) => CircleAvatar(
+                                                backgroundColor:
+                                                    Colors.grey.shade200,
+                                                child: Icon(
+                                                  Icons.person,
+                                                  size: availableHeight * 0.06,
+                                                  color: Colors.grey.shade400,
+                                                ),
+                                              ),
+                                        ),
+                                ),
                               ),
-                            ),
-                            child: ClipOval(
-                              child: Image.asset(
-                                'assets/images/profile.png',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    CircleAvatar(
-                                      backgroundColor: Colors.grey.shade200,
-                                      child: Icon(
-                                        Icons.person,
-                                        size: availableHeight * 0.06,
-                                        color: Colors.grey.shade400,
+                              // ✅ Botón de editar imagen
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: GestureDetector(
+                                  onTap: _pickImage,
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
                                       ),
                                     ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                           SizedBox(height: AppConstants.spacingMd),
+                          // ✅ Nombre del usuario desde la sesión
                           Text(
                             _currentUser?.name ?? 'Usuario',
                             style: Theme.of(context).textTheme.headlineSmall
@@ -156,25 +414,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context: context,
                       icon: Icons.lock_outline,
                       text: 'Cambiar contraseña',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Función no implementada'),
-                          ),
-                        );
-                      },
+                      onTap: _showChangePasswordDialog,
                     ),
                     _buildProfileOption(
                       context: context,
                       icon: Icons.edit_outlined,
                       text: 'Cambiar nombre',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Función no implementada'),
-                          ),
-                        );
-                      },
+                      onTap: _showChangeNameDialog,
                     ),
                     _buildProfileOption(
                       context: context,
@@ -227,7 +473,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SnackBar(content: Text('Sesión cerrada exitosamente')),
         );
 
-        // Esperar un poco para que se vea el mensaje
         await Future.delayed(const Duration(milliseconds: 1000));
 
         if (mounted) {

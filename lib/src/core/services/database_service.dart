@@ -70,6 +70,19 @@ class DatabaseService {
       )
     ''');
 
+    // ✅ Crear tabla user_favorites (faltaba)
+    await db.execute('''
+      CREATE TABLE user_favorites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        place_id INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(user_id, place_id),
+        FOREIGN KEY (user_id) REFERENCES users (id),
+        FOREIGN KEY (place_id) REFERENCES places (id)
+      )
+    ''');
+
     // Create reservations table
     await db.execute('''
       CREATE TABLE reservations (
@@ -208,8 +221,8 @@ class DatabaseService {
       'name': place.name,
       'description': place.description,
       'category': place.category,
-      'latitude': place.latitude,
-      'longitude': place.longitude,
+      'latitude': 0.0, // ✅ Placeholder
+      'longitude': 0.0, // ✅ Placeholder
       'rating': place.rating,
       'is_favorite': place.isFavorite ? 1 : 0,
       'main_image_type': place.mainImage.type,
@@ -221,7 +234,7 @@ class DatabaseService {
       'phone': place.phone,
       'address': place.address,
       'price_range': place.priceRange,
-      'updated_at': place.updatedAt.toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(), // ✅ Usar DateTime.now()
     });
   }
 
@@ -244,105 +257,105 @@ class DatabaseService {
 
   // Places operations
   Future<List<Place>> getAllPlaces() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('places');
+    try {
+      final db = await database;
+      final userId = await _getCurrentUserId();
 
-    return List.generate(maps.length, (i) {
-      return Place(
-        id: maps[i]['id'],
-        name: maps[i]['name'],
-        description: maps[i]['description'],
-        category: maps[i]['category'],
-        latitude: maps[i]['latitude'],
-        longitude: maps[i]['longitude'],
-        rating: maps[i]['rating'],
-        isFavorite: maps[i]['is_favorite'] == 1,
-        mainImage: ImageData(
-          type: maps[i]['main_image_type'],
-          path: maps[i]['main_image_path'],
-        ),
-        galleryImages: (json.decode(maps[i]['gallery_images']) as List)
-            .map((img) => ImageData.fromJson(img))
-            .toList(),
-        openingHours: maps[i]['opening_hours'],
-        phone: maps[i]['phone'],
-        address: maps[i]['address'],
-        priceRange: maps[i]['price_range'],
-        updatedAt: DateTime.parse(maps[i]['updated_at']),
+      // Obtener lugares
+      final List<Map<String, dynamic>> placesData = await db.query(
+        'places',
+        orderBy: 'name ASC',
       );
-    });
+
+      // Obtener favoritos del usuario
+      final List<Map<String, dynamic>> favoritesData = userId != null
+          ? await db.query(
+              'user_favorites',
+              where: 'user_id = ?',
+              whereArgs: [userId],
+            )
+          : [];
+
+      final favoriteIds = favoritesData
+          .map((f) => f['place_id'] as int)
+          .toSet();
+
+      // Convertir a Place con estado de favorito correcto
+      return placesData.map((placeJson) {
+        final placeId = placeJson['id'] as int;
+        return Place.fromJson(
+          placeJson,
+          isFavorite: favoriteIds.contains(placeId),
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting all places: $e');
+      return [];
+    }
   }
 
   Future<Place?> getPlace(int id) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'places',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    try {
+      final db = await database;
+      final userId = await _getCurrentUserId();
 
-    if (maps.isNotEmpty) {
-      return Place(
-        id: maps[0]['id'],
-        name: maps[0]['name'],
-        description: maps[0]['description'],
-        category: maps[0]['category'],
-        latitude: maps[0]['latitude'],
-        longitude: maps[0]['longitude'],
-        rating: maps[0]['rating'],
-        isFavorite: maps[0]['is_favorite'] == 1,
-        mainImage: ImageData(
-          type: maps[0]['main_image_type'],
-          path: maps[0]['main_image_path'],
-        ),
-        galleryImages: (json.decode(maps[0]['gallery_images']) as List)
-            .map((img) => ImageData.fromJson(img))
-            .toList(),
-        openingHours: maps[0]['opening_hours'],
-        phone: maps[0]['phone'],
-        address: maps[0]['address'],
-        priceRange: maps[0]['price_range'],
-        updatedAt: DateTime.parse(maps[0]['updated_at']),
+      final List<Map<String, dynamic>> maps = await db.query(
+        'places',
+        where: 'id = ?',
+        whereArgs: [id],
       );
+
+      if (maps.isEmpty) return null;
+
+      // Verificar si es favorito
+      bool isFavorite = false;
+      if (userId != null) {
+        final favoriteCheck = await db.query(
+          'user_favorites',
+          where: 'user_id = ? AND place_id = ?',
+          whereArgs: [userId, id],
+        );
+        isFavorite = favoriteCheck.isNotEmpty;
+      }
+
+      return Place.fromJson(maps.first, isFavorite: isFavorite);
+    } catch (e) {
+      debugPrint('Error getting place: $e');
+      return null;
     }
-    return null;
   }
 
+  // ✅ Agregar método getFavoritePlaces que faltaba
   Future<List<Place>> getFavoritePlaces(int userId) async {
-    final db = await database;
-    final user = await getUser(userId);
-    if (user == null) return [];
+    try {
+      final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(
-      'places',
-      where: 'id IN (${user.favoriteIds.map((_) => '?').join(',')})',
-      whereArgs: user.favoriteIds,
-    );
-
-    return List.generate(maps.length, (i) {
-      return Place(
-        id: maps[i]['id'],
-        name: maps[i]['name'],
-        description: maps[i]['description'],
-        category: maps[i]['category'],
-        latitude: maps[i]['latitude'],
-        longitude: maps[i]['longitude'],
-        rating: maps[i]['rating'],
-        isFavorite: true,
-        mainImage: ImageData(
-          type: maps[i]['main_image_type'],
-          path: maps[i]['main_image_path'],
-        ),
-        galleryImages: (json.decode(maps[i]['gallery_images']) as List)
-            .map((img) => ImageData.fromJson(img))
-            .toList(),
-        openingHours: maps[i]['opening_hours'],
-        phone: maps[i]['phone'],
-        address: maps[i]['address'],
-        priceRange: maps[i]['price_range'],
-        updatedAt: DateTime.parse(maps[i]['updated_at']),
+      // Obtener IDs de favoritos del usuario
+      final List<Map<String, dynamic>> favoritesData = await db.query(
+        'user_favorites',
+        where: 'user_id = ?',
+        whereArgs: [userId],
       );
-    });
+
+      if (favoritesData.isEmpty) return [];
+
+      final favoriteIds = favoritesData
+          .map((f) => f['place_id'] as int)
+          .toList();
+
+      // Obtener los lugares favoritos
+      final placesData = await db.query(
+        'places',
+        where: 'id IN (${favoriteIds.join(',')})',
+      );
+
+      return placesData.map((placeJson) {
+        return Place.fromJson(placeJson, isFavorite: true);
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting favorite places: $e');
+      return [];
+    }
   }
 
   // User operations
@@ -388,39 +401,36 @@ class DatabaseService {
     return null;
   }
 
+  // Toggle favorito con persistencia correcta
   Future<void> toggleFavorite(int userId, int placeId) async {
-    final db = await database;
-    final user = await getUser(userId);
-    if (user == null) return;
+    try {
+      final db = await database;
 
-    List<int> favoriteIds = List.from(user.favoriteIds);
-    bool isFavorite;
-    if (favoriteIds.contains(placeId)) {
-      favoriteIds.remove(placeId);
-      isFavorite = false;
-    } else {
-      favoriteIds.add(placeId);
-      isFavorite = true;
+      final existing = await db.query(
+        'user_favorites',
+        where: 'user_id = ? AND place_id = ?',
+        whereArgs: [userId, placeId],
+      );
+
+      if (existing.isEmpty) {
+        // Agregar a favoritos
+        await db.insert('user_favorites', {
+          'user_id': userId,
+          'place_id': placeId,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      } else {
+        // Quitar de favoritos
+        await db.delete(
+          'user_favorites',
+          where: 'user_id = ? AND place_id = ?',
+          whereArgs: [userId, placeId],
+        );
+      }
+    } catch (e) {
+      debugPrint('Error toggling favorite: $e');
+      rethrow;
     }
-
-    // Update user favorites
-    await db.update(
-      'users',
-      {
-        'favorite_ids': json.encode(favoriteIds),
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
-
-    // Update place favorite status
-    await db.update(
-      'places',
-      {'is_favorite': isFavorite ? 1 : 0},
-      where: 'id = ?',
-      whereArgs: [placeId],
-    );
   }
 
   // Reservation operations
@@ -509,5 +519,15 @@ class DatabaseService {
       whereArgs: ['places_last_updated'],
     );
     await _loadInitialData(db);
+  }
+
+  // ✅ Obtener ID del usuario actual
+  Future<int?> _getCurrentUserId() async {
+    try {
+      final user = await getCurrentUser();
+      return user?.id;
+    } catch (e) {
+      return null;
+    }
   }
 }
