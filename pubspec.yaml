@@ -27,14 +27,14 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/images/screen1.png
-    - assets/images/screen2.png
-    - assets/images/screen3.png
+    # - assets/images/screen1.png
+    # - assets/images/screen2.png
+    # - assets/images/screen3.png
     - assets/icons/
     - assets/images/fotos/
-    - assets/images/fotos/Laguna mallen/
-    - assets/images/fotos/Museo Centro Histórico Ron Barceló/
-    - assets/data/
+    # - assets/images/fotos/Laguna mallen/
+    # - assets/images/fotos/Museo Centro Histórico Ron Barceló/
+    # - assets/data/
 
 flutter_launcher_icons:
   android: true

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:spm/src/core/services/auth_service.dart';
+import 'package:spm/src/core/theme/colors/app_colors.dart';
 import 'package:spm/src/shared/widgets/app_snackbar.dart';
 import 'package:spm/src/shared/widgets/main_navigator.dart';
 
@@ -14,8 +16,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
   final AuthService _authService = AuthService();
 
   bool _isLoading = false;
@@ -26,7 +26,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -39,7 +38,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    // Limpiar errores previos
     setState(() {
       _fieldErrors.clear();
     });
@@ -47,19 +45,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
 
-    // Validar campos
     final validationErrors = _authService.validateRegisterFields(
       name,
       email,
       password,
     );
-
-    // Validar confirmación de contraseña por separado
-    if (password != confirmPassword) {
-      validationErrors['confirmPassword'] = 'Las contraseñas no coinciden';
-    }
 
     if (validationErrors.isNotEmpty) {
       setState(() {
@@ -69,7 +60,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // Mostrar loading
     setState(() {
       _isLoading = true;
     });
@@ -84,8 +74,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         if (result.success) {
           AppSnackBar.showSuccess(context, 'Cuenta creada correctamente');
-
-          // Navegar al main navigator después de un breve delay
           await Future.delayed(const Duration(milliseconds: 1500));
 
           if (mounted) {
@@ -121,176 +109,348 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 60),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 50),
 
-              // Logo simple
-              Center(
-                child: Container(
-                  width: 120,
-                  height: 120,
+                // Logo y texto del monumento
+                Column(
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/monument.svg',
+                      height: 150,
+                      colorFilter: ColorFilter.mode(
+                        AppColors.primary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SvgPicture.asset(
+                      'assets/images/text_logo.svg',
+                      height: 24,
+                      colorFilter: ColorFilter.mode(
+                        AppColors.shadowColor,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 50),
+
+                // Título "Crear cuenta"
+                Text(
+                  'Crear cuenta',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // Campo de nombre
+                Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE53E3E),
-                    borderRadius: BorderRadius.circular(60),
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(25),
                   ),
-                  child: const Icon(
-                    Icons.location_city,
-                    size: 60,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Título simple
-              const Text(
-                'Crear Cuenta',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              const Text(
-                'Regístrate para comenzar',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-
-              const SizedBox(height: 48),
-
-              // Campo nombre simple
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nombre completo',
-                  hintText: 'Ingresa tu nombre',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  prefixIcon: const Icon(Icons.person),
-                  errorText: _fieldErrors['name'],
-                ),
-                onChanged: (_) => _clearFieldError('name'),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Campo de email simple
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Ingresa tu email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  prefixIcon: const Icon(Icons.email),
-                  errorText: _fieldErrors['email'],
-                ),
-                onChanged: (_) => _clearFieldError('email'),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Campo de contraseña simple
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  hintText: 'Ingresa tu contraseña',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  prefixIcon: const Icon(Icons.lock),
-                  errorText: _fieldErrors['password'],
-                ),
-                onChanged: (_) => _clearFieldError('password'),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Campo confirmar contraseña simple
-              TextField(
-                controller: _confirmPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Confirmar contraseña',
-                  hintText: 'Confirma tu contraseña',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  prefixIcon: const Icon(Icons.lock),
-                  errorText: _fieldErrors['confirmPassword'],
-                ),
-                onChanged: (_) => _clearFieldError('confirmPassword'),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Botón de registro simple
-              ElevatedButton(
-                onPressed: _isLoading ? null : _handleRegister,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE53E3E),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Crear Cuenta',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      hintText: 'Nombre',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFFBDBDBD),
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
                         ),
                       ),
-              ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: const BorderSide(
+                          color: Colors.red,
+                          width: 1.5,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF5F5F5),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 18,
+                      ),
+                      errorText: _fieldErrors['name'],
+                    ),
+                    onChanged: (_) => _clearFieldError('name'),
+                  ),
+                ),
 
-              const SizedBox(height: 32),
+                const SizedBox(height: 16),
 
-              // Enlace a login
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('¿Ya tienes cuenta? '),
-                  TextButton(
+                // Campo de email
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      hintText: 'Correo',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFFBDBDBD),
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: const BorderSide(
+                          color: Colors.red,
+                          width: 1.5,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF5F5F5),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 18,
+                      ),
+                      errorText: _fieldErrors['email'],
+                    ),
+                    onChanged: (_) => _clearFieldError('email'),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Campo de contraseña
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: 'Contraseña',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFFBDBDBD),
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: const BorderSide(
+                          color: Colors.red,
+                          width: 1.5,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF5F5F5),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 18,
+                      ),
+                      errorText: _fieldErrors['password'],
+                    ),
+                    onChanged: (_) => _clearFieldError('password'),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // "¿Tienes una cuenta? Iniciar sesión"
+                Center(
+                  child: TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text(
-                      'Inicia Sesión',
-                      style: TextStyle(
-                        color: Color(0xFFE53E3E),
-                        fontWeight: FontWeight.w600,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF757575),
+                        ),
+                        children: [
+                          const TextSpan(text: '¿Tienes una cuenta? '),
+                          TextSpan(
+                            text: 'Iniciar sesión',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Botón de Crear cuenta (ancho ajustado)
+                Center(
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _handleRegister,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.shadowColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Crear cuenta',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                // "O continuar con:"
+                const Text(
+                  'O continuar con:',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: Color(0xFF757575)),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Iconos de redes sociales
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _SocialButton(
+                      icon: Icons.facebook,
+                      color: const Color(0xFF1877F2),
+                      onTap: () {
+                        // TODO: Implementar registro con Facebook
+                      },
+                    ),
+                    const SizedBox(width: 20),
+                    _SocialButton(
+                      icon: Icons.fingerprint,
+                      color: const Color(0xFF4CAF50),
+                      onTap: () {
+                        // TODO: Implementar registro con huella
+                      },
+                    ),
+                    const SizedBox(width: 20),
+                    _SocialButton(
+                      icon: Icons.g_mobiledata,
+                      color: const Color(0xFFDB4437),
+                      onTap: () {
+                        // TODO: Implementar registro con Google
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Widget auxiliar para los botones de redes sociales
+class _SocialButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _SocialButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(50),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFFE0E0E0), width: 1.5),
+        ),
+        child: Icon(icon, color: color, size: 30),
       ),
     );
   }

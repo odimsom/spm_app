@@ -12,7 +12,6 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
   String _searchQuery = "";
   final List<String> _recentSearches = ["Playa", "Museo", "Restaurante"];
 
@@ -22,13 +21,13 @@ class _SearchScreenState extends State<SearchScreen> {
       places: [
         PlaceInfo(
           name: "Laguna de Nisibon",
-          imagePath: "assets/images/laguna_nisibon.jpg",
+          imagePath: "assets/images/fotos/Laguna mallen/Laguna mallen.jpg",
           rating: 4.8,
           isFavorite: true,
         ),
         PlaceInfo(
           name: "Playa de Guayacanes",
-          imagePath: "assets/images/playa_guayacanes.jpg",
+          imagePath: "assets/images/fotos/Playa Guayacanes.jpg",
           rating: 4.6,
           isFavorite: false,
         ),
@@ -39,15 +38,9 @@ class _SearchScreenState extends State<SearchScreen> {
       places: [
         PlaceInfo(
           name: "Playa Juan Dolio",
-          imagePath: "assets/images/playa_juan_dolio.jpg",
+          imagePath: "assets/images/fotos/Playa Juan Dolio.webp",
           rating: 4.5,
           isFavorite: true,
-        ),
-        PlaceInfo(
-          name: "Playa Guayacanes",
-          imagePath: "assets/images/playa_guayacanes.jpg",
-          rating: 4.2,
-          isFavorite: false,
         ),
       ],
     ),
@@ -56,15 +49,10 @@ class _SearchScreenState extends State<SearchScreen> {
       places: [
         PlaceInfo(
           name: "Museo Ron Barceló",
-          imagePath: "assets/images/museo_ron_barcelo.jpg",
+          imagePath:
+              "assets/images/fotos/Museo Centro Histórico Ron Barceló/Museo Centro Histórico Ron Barceló.jpg",
           rating: 4.7,
           isFavorite: true,
-        ),
-        PlaceInfo(
-          name: "Museo del Deporte",
-          imagePath: "assets/images/museo_deporte.jpg",
-          rating: 4.0,
-          isFavorite: false,
         ),
       ],
     ),
@@ -73,13 +61,13 @@ class _SearchScreenState extends State<SearchScreen> {
       places: [
         PlaceInfo(
           name: "Cueva las Maravillas",
-          imagePath: "assets/images/cueva_maravillas.jpg",
+          imagePath: "assets/images/fotos/La Cueva de las Maravillas.jpg",
           rating: 4.9,
           isFavorite: true,
         ),
         PlaceInfo(
           name: "Campo Azul",
-          imagePath: "assets/images/campo_azul.jpg",
+          imagePath: "assets/images/fotos/campo azul.jpg",
           rating: 4.3,
           isFavorite: false,
         ),
@@ -89,14 +77,8 @@ class _SearchScreenState extends State<SearchScreen> {
       name: "Sitios históricos",
       places: [
         PlaceInfo(
-          name: "Ingenio Santa Fe",
-          imagePath: "assets/images/ingenio_santa_fe.jpg",
-          rating: 4.4,
-          isFavorite: false,
-        ),
-        PlaceInfo(
           name: "Malecón SPM",
-          imagePath: "assets/images/malecon_spm.jpg",
+          imagePath: "assets/images/fotos/malecon.jpg",
           rating: 4.5,
           isFavorite: true,
         ),
@@ -142,72 +124,60 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: "Buscar lugares...",
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                ),
-                style: const TextStyle(color: Colors.black87, fontSize: 16),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-              )
-            : const Text(
-                "Buscar",
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.bold,
-                ),
+        automaticallyImplyLeading: false,
+        title: Container(
+          height: 45,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            controller: _searchController,
+            autofocus: false,
+            decoration: InputDecoration(
+              hintText: "Buscar lugares...",
+              hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 15),
+              border: InputBorder.none,
+              prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = "";
+                        });
+                      },
+                    )
+                  : null,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
               ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () {
-            if (_isSearching) {
-              setState(() {
-                _isSearching = false;
-                _searchController.clear();
-                _searchQuery = "";
-              });
-            } else {
-              Navigator.pop(context);
-            }
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _isSearching ? Icons.clear : Icons.search,
-              color: Colors.grey.shade700,
             ),
-            onPressed: () {
+            style: const TextStyle(color: Colors.black87, fontSize: 15),
+            onChanged: (value) {
               setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  _searchQuery = "";
-                }
+                _searchQuery = value;
               });
             },
           ),
-        ],
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Sección de búsquedas recientes
-            if (_searchQuery.isEmpty && !_isSearching) ...[
+            const SizedBox(height: 16),
+
+            // Búsquedas recientes
+            if (_searchQuery.isEmpty) ...[
               const Padding(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: Text(
                   "Búsquedas recientes",
                   style: TextStyle(
@@ -236,11 +206,13 @@ class _SearchScreenState extends State<SearchScreen> {
                   }).toList(),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
             ],
 
-            // Resultados de búsqueda
+            // Resultados
             ..._buildSearchResults(),
+
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -248,30 +220,27 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   List<Widget> _buildSearchResults() {
-    // Si no hay búsqueda activa, mostrar todas las categorías
-    if (_searchQuery.isEmpty && !_isSearching) {
-      return _filteredCategories.map((category) {
-        return _buildCategorySection(category);
-      }).toList();
-    }
-
-    // Si hay búsqueda activa pero sin resultados
-    if (_filteredCategories.isEmpty) {
+    if (_filteredCategories.isEmpty && _searchQuery.isNotEmpty) {
       return [
-        const Center(
+        Center(
           child: Padding(
-            padding: EdgeInsets.all(32.0),
-            child: Text(
-              "No se encontraron resultados para tu búsqueda",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              children: [
+                Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
+                const SizedBox(height: 16),
+                Text(
+                  "No se encontraron resultados",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                ),
+              ],
             ),
           ),
         ),
       ];
     }
 
-    // Mostrar resultados de búsqueda
     return _filteredCategories.map((category) {
       return _buildCategorySection(category);
     }).toList();
@@ -282,7 +251,7 @@ class _SearchScreenState extends State<SearchScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -307,7 +276,7 @@ class _SearchScreenState extends State<SearchScreen> {
         SizedBox(
           height: 180,
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.only(left: 16),
             scrollDirection: Axis.horizontal,
             itemCount: category.places.length,
             itemBuilder: (context, index) {
@@ -316,6 +285,7 @@ class _SearchScreenState extends State<SearchScreen> {
             },
           ),
         ),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -323,26 +293,23 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildPlaceCard(PlaceInfo place) {
     return GestureDetector(
       onTap: () {
-        // Guardar la búsqueda si es relevante
-        if (_isSearching && _searchQuery.isNotEmpty) {
-          if (!_recentSearches.contains(_searchQuery)) {
-            setState(() {
-              _recentSearches.insert(0, _searchQuery);
-              if (_recentSearches.length > 5) {
-                _recentSearches.removeLast();
-              }
-            });
-          }
+        if (_searchQuery.isNotEmpty &&
+            !_recentSearches.contains(_searchQuery)) {
+          setState(() {
+            _recentSearches.insert(0, _searchQuery);
+            if (_recentSearches.length > 5) {
+              _recentSearches.removeLast();
+            }
+          });
         }
 
-        // Navegar a la pantalla de detalle
         final placeDetail = PlaceDetail(
           id: place.id,
           name: place.name,
           imagePath: place.imagePath,
           rating: place.rating,
           description:
-              "Podrán sumergirse en un ambiente ecléctico antiguo y moderno, con piezas y objetos que despertarán su curiosidad y les envolverán en un ambiente de descubrimiento. Además, tendrán oportunidad de adquirir nuestros productos y gama de artículos promocionales, para que puedan tener un delicioso recuerdo de la experiencia.",
+              "Podrán sumergirse en un ambiente ecléctico antiguo y moderno, con piezas y objetos que despertarán su curiosidad.",
           isFavorite: place.isFavorite,
         );
 
@@ -354,169 +321,115 @@ class _SearchScreenState extends State<SearchScreen> {
         );
       },
       child: Container(
-        margin: const EdgeInsets.all(4),
+        margin: const EdgeInsets.only(right: 12),
         width: 160,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Imagen del lugar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: place.imagePath.startsWith('assets/')
-                  ? Image.asset(
-                      place.imagePath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.image_not_supported,
-                              size: 30,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Imagen no disponible',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                place.imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey[300],
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.image_not_supported,
+                        size: 40,
+                        color: Colors.grey[600],
                       ),
-                    )
-                  : Image.network(
-                      place.imagePath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.image_not_supported,
-                              size: 30,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Imagen no disponible',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-            ),
-
-            // Gradiente para mejor legibilidad
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.7),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Información del lugar
-            Positioned(
-              bottom: 8,
-              left: 8,
-              right: 8,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    place.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.center,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.75),
+                    ],
+                    stops: const [0.4, 1.0],
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      ...List.generate(
+                ),
+              ),
+
+              Positioned(
+                bottom: 10,
+                left: 10,
+                right: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      place.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: List.generate(
                         5,
                         (index) => Icon(
                           index < place.rating.floor()
                               ? Icons.star
                               : Icons.star_border,
                           color: Colors.amber,
-                          size: 12,
+                          size: 14,
                         ),
                       ),
-                      if (place.rating - place.rating.floor() >= 0.5)
-                        const Icon(
-                          Icons.star_half,
-                          color: Colors.amber,
-                          size: 12,
-                        ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // Botón de favorito
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  shape: BoxShape.circle,
-                ),
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  place.isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: place.isFavorite ? Colors.red : Colors.white,
-                  size: 16,
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    place.isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: place.isFavorite ? Colors.red : Colors.grey.shade600,
+                    size: 18,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// Clase para manejar la información de cada lugar en la búsqueda
 class PlaceInfo {
   final int id;
   final String name;
@@ -533,7 +446,6 @@ class PlaceInfo {
   }) : id = id ?? name.hashCode.abs();
 }
 
-// Clase para manejar categorías de lugares
 class PlaceCategory {
   final String name;
   final List<PlaceInfo> places;
